@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "Code": "AAPL",
+      "Name": "Apple Inc",
+      "Country": "USA",
+      "Exchange": "NASDAQ",
+      "Currency": "USD",
+      "Type": "Common Stock",
+      "Isin": "US0378331005"
+    },
+    {
+      "Code": "MCD",
+      "Name": "McDonald’s Corporation",
+      "Country": "USA",
+      "Exchange": "NYSE",
+      "Currency": "USD",
+      "Type": "Common Stock",
+      "Isin": "US5801351017"
+    }
+  ]
+}

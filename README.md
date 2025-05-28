@@ -1,64 +1,136 @@
-# EODHD Plugin
+# plugin-eodhd
 
-## Description
-This project is an Express-based application that provides an API for accessing EODHD data. It includes JWT authentication for secure access to the data endpoints.
+A Node.js plugin for working with EOD Historical Data, using Express, GraphQL, Knex, and SQLite.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v16+ recommended)
+- npm
+
+### Installation
+
+```bash
+npm install
+```
+
+### Environment Variables
+
+Copy `.env.example` to `.env` and update as needed:
+
+```bash
+cp .env.example .env
+```
+
+### Build
+
+```bash
+npm run build
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+### Start (Production)
+
+```bash
+npm start
+```
+
+### Database Seeding
+
+To seed the database with symbol data:
+
+```bash
+npm run seed
+```
+
+This will load data from `seeds/symbols.json` into the `symbols` table.
 
 ## Features
-- JWT authentication for secure API access
-- Login route to generate JWTs
-- Protected route to fetch data from EODHD API
 
-## Installation
+- REST and GraphQL APIs
+- Database migrations and seeding with Knex
+- Environment variable support via dotenv
+- TypeScript support
+- SQLite database (default)
 
-1. Clone the repository:
-   ```
-   git clone <repository-url>
-   ```
+## GraphQL API
 
-2. Navigate to the project directory:
-   ```
-   cd plugin-eodhd
-   ```
+The GraphQL API is defined in [`src/graphql/schema.graphql`](src/graphql/schema.graphql).
 
-3. Install the dependencies:
-   ```
-   npm install
-   ```
+### Main Types
 
-4. Create a `.env` file in the root directory and add your secret key:
-   ```
-   SECRET_KEY=your_secret_key
-   NO_AUTH=false
-   ```
+- **Symbol**: Represents a financial symbol (fields: `code`, `name`, `currency`)
+- **Reference**: Represents a reference to a symbol, including `rate` and `date`
+- **SymbolConnection**: Paginated list of symbols
+- **ReferenceConnection**: Paginated list of references
+- **Info**: Pagination information
 
-## Usage
+### Queries
 
-1. Start the server:
-   ```
-   npm start
-   ```
+- `symbols(option: Option): SymbolConnection!`  
+  Fetch a paginated list of symbols.
 
-2. To log in and obtain a JWT, send a POST request to `/login` with the following JSON body:
-   ```json
-   {
-       "accessKey": "foobar"
-   }
-   ```
+- `symbol(code: String!): Symbol!`  
+  Fetch a specific symbol by its unique code.
 
-3. Use the obtained JWT to access protected routes. Include the token in the `Authorization` header as follows:
-   ```
-   Authorization: Bearer <your_token>
-   ```
+- `references(symbol: String, startDate: Date, endDate: Date, option: Option): ReferenceConnection!`  
+  Fetch a paginated list of references, filterable by symbol code and date range.
 
-4. To fetch data from the EODHD API, send a POST request to `/data` with the following JSON body:
-   ```json
-   {
-       "code": "AAPL",
-       "eodhd_token": "<your_eodhd_token>",
-       "ymd_from": "2023-01-01",
-       "ymd_to": "2023-01-31"
-   }
-   ```
+### Example Query
+
+```graphql
+query {
+  symbols(option: { limit: 5 }) {
+    total
+    nodes {
+      code
+      name
+      currency
+    }
+    info {
+      cursor
+      hasNext
+    }
+  }
+}
+```
+
+### Custom Scalars
+
+- `Date`: ISO 8601 date string
+
+### Pagination
+
+Use the `Option` input for pagination:
+- `limit`: Number of items per page (default: 10)
+- `cursor`: For cursor-based pagination
+
+## Scripts
+
+- `npm run build` – Compile TypeScript to JavaScript
+- `npm run dev` – Start server in development mode
+- `npm start` – Start server (after build)
+- `npm run seed` – Seed the database
+- `npm run copy:schema` – Copy GraphQL schema to the build output
+
+## Project Structure
+
+```
+.
+├── src/                # Source code (TypeScript)
+├── dist/               # Compiled output (JavaScript)
+├── seeds/              # Seed scripts and data
+├── .env.example        # Example environment variables
+├── package.json
+└── README.md
+```
 
 ## License
-This project is licensed under the MIT License.
+
+MIT
