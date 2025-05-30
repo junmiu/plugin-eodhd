@@ -66,6 +66,7 @@ input Option {
 Root query type for fetching data.
 """
 type Query {
+  auth(apiKey: String!): String!
   """
   Fetch a paginated list of symbols.
   """

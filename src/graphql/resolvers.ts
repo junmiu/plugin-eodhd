@@ -1,6 +1,6 @@
 import { db } from '../database';
-import dotenv from 'dotenv';
 import axios from 'axios';
+import { sign } from '../auth';
 
 type EODHDResponse = {
   date: string;
@@ -12,19 +12,15 @@ type EODHDResponse = {
   adjusted_close: number;
 }
 
-dotenv.config();
-const SECRET_KEY = process.env.SECRET_KEY || 'your_default_secret';
-
-const formatDate2Number = (date?: string) => {
-  return date ? parseInt(date.replace(/-/g, ''), 10) : NaN;
-};
-
-const formatDate2String = (date?: number) => {
-  return date ? date.toString().replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : '';
-};
-
 export const resolvers = {
-  symbols: async (args: { option?: { limit?: number; cursor?: string } }) => {
+  auth: async (args: { apiKey: string }) => {
+    return sign(args.apiKey);
+  },
+  symbols: async (args: { option?: { limit?: number; cursor?: string } }, context: { apiKey?: string }) => {
+    if (!context.apiKey) {
+      throw new Error('Failed to fetch symbols');
+    }
+
     const { option } = args;
 
     try {
@@ -64,13 +60,21 @@ export const resolvers = {
       throw new Error('Failed to fetch symbols');
     }
   },
-  symbol: async (args: { code: string }) => {
+  symbol: async (args: { code: string }, context: { apiKey?: string }) => {
+    if (!context.apiKey) {
+      throw new Error('Failed to fetch symbols');
+    }
+
     const { code } = args;
     return await db('symbols').where({ code }).first();
   },
-  references: async (args: { startDate?: string; endDate?: string; symbol?: string, option?: { limit?: number; cursor?: string } }) => {
+  references: async (args: { startDate?: string; endDate?: string; symbol?: string, option?: { limit?: number; cursor?: string } }, context: { apiKey?: string }) => {
+    if (!context.apiKey) {
+      throw new Error('Failed to fetch symbols');
+    }
+
     const { startDate, endDate, symbol, option = {} } = args;
-    const url = `https://eodhd.com/api/eod/${symbol}?from=${startDate}&to=${endDate}&period=d&api_token=${SECRET_KEY}&fmt=json`;
+    const url = `https://eodhd.com/api/eod/${symbol}?from=${startDate}&to=${endDate}&period=d&api_token=${context.apiKey}&fmt=json`;
     const response = await axios.get<EODHDResponse[]>(url);
     const symbolData = await db('symbols').where({ code: symbol }).first();
 
