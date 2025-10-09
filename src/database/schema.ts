@@ -1,5 +1,19 @@
 import { Knex } from 'knex';
 
+export async function createExchangesTable(db: Knex) {
+  const exists = await db.schema.hasTable('exchanges');
+  if (!exists) {
+    await db.schema.createTable('exchanges', (table) => {
+      table.increments('id').primary();
+      table.string('name');
+      table.string('currency');
+      table.string('code');
+      table.string('mic');
+      table.string('country');
+    });
+  }
+}
+
 export async function createSymbolsTable(db: Knex) {
   const exists = await db.schema.hasTable('symbols');
   if (!exists) {

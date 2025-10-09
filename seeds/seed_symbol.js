@@ -6,7 +6,22 @@ dotenv.config();
 
 /**
  * @param { import("knex").Knex } knex
- * @returns { Promise<void> } 
+ * @returns { Promise<void> }
+ */
+const insertExchanges = async (knex) => {
+  const exchangesPath = path.join(__dirname, 'exchanges.json');
+  const exchanges = JSON.parse(fs.readFileSync(exchangesPath, 'utf-8'));
+  const n = 100;
+
+  for (let i = 0; i < exchanges.length; i += n) {
+    const batch = exchanges.slice(i, i + n).map(s => ({ name: s.Name, currency: s.Currency, code: s.Code, mic: s.OperatingMIC, country: s.Country }));
+    await knex('exchanges').insert(batch);
+  }
+}
+
+/**
+ * @param { import("knex").Knex } knex
+ * @returns { Promise<void> }
  */
 const insertSymbols = async (knex) => {
   const symbolsPath = path.join(__dirname, 'symbols.json');
@@ -27,5 +42,7 @@ exports.seed = async function(knex) {
   // Deletes ALL existing entries
   await knex('symbols').del();
   await knex('references').del();
+  await knex('exchanges').del();
+  await insertExchanges(knex);
   await insertSymbols(knex);
 };

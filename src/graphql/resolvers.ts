@@ -76,10 +76,15 @@ export const resolvers = {
     const { startDate, endDate, symbol, option = {} } = args;
     const url = `https://eodhd.com/api/eod/${symbol}?from=${startDate}&to=${endDate}&period=d&api_token=${context.apiKey}&fmt=json`;
     const response = await axios.get<EODHDResponse[]>(url);
-    const symbolData = await db('symbols').where({ code: symbol }).first();
+    const [, exchange] = symbol!.split('.');
+    const name = symbol;
+    let currency = 'USD';
 
-    if (!symbolData) {
-      throw new Error(`Symbol with code ${symbol} not found`);
+    if (exchange) {
+      const symbolData = await db('exchanges').where({ code: exchange }).first();
+      if (symbolData) {
+        currency = symbolData.currency;
+      }
     }
 
     return response.data.reduce((acc, d) => {
@@ -87,7 +92,11 @@ export const resolvers = {
         id: null,
         date: d.date,
         rate: d.close,
-        symbol: symbolData,
+        symbol: {
+          code: symbol,
+          name,
+          currency,
+        },
       });
       return acc;
     }, {
