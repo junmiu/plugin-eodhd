@@ -8,8 +8,9 @@ import { sign, verify } from './auth';
 export const app = express();
 
 app.use(cors({
-  origin: 'https://localhost:8081',
-  methods: ['GET', 'POST'],
+  origin: ['https://dev.gloss.codes', 'https://uat.gloss-vault.com', 'https://app.gloss-vault.com'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  optionsSuccessStatus: 204,
 }));
 
 // GraphQL endpoint
